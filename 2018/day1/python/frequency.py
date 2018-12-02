@@ -13,7 +13,6 @@ for f in fchanges:
 
 
 print('Resulting skew is ' + str(current))
-
 foundDuplicate = False
 while not foundDuplicate:
 	for f in fchanges:
