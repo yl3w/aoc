@@ -2,6 +2,7 @@
 # https://adventofcode.com/2018/day/3
 import re
 import functools
+import itertools
 
 def readSpecification(filename):
     """return a list of 3-tuple's, where each tuple is (identifier, (row, column), (width, height))"""
@@ -41,8 +42,20 @@ def assignIdentifiers(specs):
 def countMultiUseCells(assignments):
     return functools.reduce(lambda x, y: x + y, map(lambda t: 0 if len(t[1]) == 1 else 1, assignments.items()))
 
+def findNonOverLappingClaims(specs, assignments):
+    claims = set(map(lambda t : t[0], specs))
+    overlappingClaims = set(itertools.chain.from_iterable(map(lambda l: [] if len(l) == 1 else l, assignments.values())))
+    #print('Overlapping claim count ' + str(len(overlappingClaims)))
+    return claims.difference(overlappingClaims)
+
+
 #specs = readSpecification("sample.input")
 specs = readSpecification("production.input")
-print('Total number of specifications is ' + str(len(specs)))
+#print('Total number of specifications is ' + str(len(specs)))
 assignments = assignIdentifiers(specs)
-print(countMultiUseCells(assignments))
+print('Cell count with multiple usage is ' + str(countMultiUseCells(assignments)))
+nonOverlappingClaims = findNonOverLappingClaims(specs, assignments)
+print('Number of non overlapping claims is ' + str(len(nonOverlappingClaims)))
+for claim in nonOverlappingClaims:
+    print(claim)
+
