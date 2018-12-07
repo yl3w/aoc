@@ -1,9 +1,6 @@
 # --- Day 6: Chronal Coordinates ---
 # https://adventofcode.com/2018/day/6
 
-import pprint
-import random
-
 def readSpecification(filename):
     coordinates = []
     with open(filename) as f:
@@ -58,6 +55,15 @@ def findLargestArea(coordinates, rx, ry):
     areas = [computeOwnership(c, coordinates, rx, ry) for c in boxedInCoordinates]
     return max(areas)
 
+def findPointsWithinDistance(coordinates, rx, ry, maxDistance):
+    pointCount = 0
+    for i in range(rx + 1):
+        for j in range(ry + 1):
+            if sum(map(lambda t: abs(t[0]-i) + abs(t[1] - j), coordinates)) < maxDistance:
+                pointCount = pointCount + 1
+
+    return pointCount
+
 
 coordinates = readSpecification('production.input')
 print('Total coordinates is ' + str(len(coordinates)))
@@ -65,4 +71,4 @@ lx, ly, rx, ry = computeGrid(coordinates)
 coordinates = setOrigin(coordinates, lx, ly)
 rx, ry = (rx-lx, ry-ly)
 print('Found largest area with size ' + str(findLargestArea(coordinates, rx, ry)))
-
+print('Found total of ' + str(findPointsWithinDistance(coordinates, rx ,ry, 10000)) + ' points within 10000 distance')
