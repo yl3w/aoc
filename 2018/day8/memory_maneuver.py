@@ -7,7 +7,7 @@ def readSpecification(filename):
 
 
 class Node:
-    def __init__(self, input, index):
+    def __init__(self, input, index=0):
         self.__children__ = []
         self.__metadata__ = []
         self.__startIndex__ = index
@@ -48,7 +48,7 @@ class Node:
 #specs = readSpecification('sample.input')
 specs = readSpecification('production.input')
 
-root = Node(specs, 0)
+root = Node(specs)
 #root.print()
 
 print('Sum of node is ' + str(root.sum()))
