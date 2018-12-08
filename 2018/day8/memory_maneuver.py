@@ -33,12 +33,15 @@ class Node:
         for child in self.__children__:
             child.print(depth + 1)
 
-    def sumMetadata(self):
-        totalMetadata = sum(self.__metadata__)
-        for child in self.__children__:
-            totalMetadata += child.sumMetadata()
+    def sum(self):
+        return sum(self.__metadata__) + sum(map(lambda c: c.sum(), self.__children__))
 
-        return totalMetadata
+    def value(self):
+        if len(self.__children__) == 0:
+            return self.sum()
+
+        metadataCount = len(self.__children__)
+        return sum(map(lambda v: self.__children__[v-1].value(), filter(lambda v: v > 0 and v <= metadataCount, self.__metadata__)))
 
 
 
@@ -47,5 +50,7 @@ specs = readSpecification('production.input')
 
 root = Node(specs, 0)
 #root.print()
-print('Total meta data is ' + str(root.sumMetadata()))
+
+print('Sum of node is ' + str(root.sum()))
+print('Value of node is ' + str(root.value()))
 
