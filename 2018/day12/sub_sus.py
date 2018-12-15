@@ -37,28 +37,78 @@ def nextGeneration(cg, notes):
 
     return ng
 
-def score(gen, init):
+def score(garden, init):
     score = 0
-    for i in range(len(gen)):
-        if gen[i] == '#':
+    for i in range(len(garden)):
+        if garden[i] == '#':
             score += (i + init)
 
     return score
 
+def skipGenerations(pvd, ig, cg, mg):
+    gd = cg - ig
+    gl = mg - cg
+    tailGenerations = gl % gd
+    generationsToSkip = gl - tailGenerations
 
-filename = 'sample.input'
-#filename = 'production.input'
-gen, notes = readSpecification(filename)
+    return (pvd * generationsToSkip, tailGenerations)
 
-print(str(0) + ': ' + gen)
-firstPotvalue = gen.index('#')
-for i in range(20):
-    gen = nextGeneration(gen, notes)
-    lh = gen.index('#')
-    firstPotvalue += lh - 4
-    rh = gen.rindex('#')
-    gen = gen[lh:rh+1]
-    value = score(gen, firstPotvalue)
-    print(str(i + 1) + ':(' + str(value) + ') ' + gen)
+def compact(potvalue, garden):
+    lh = garden.index('#')
+    rh = garden.rindex('#')
+    potvalue += lh - 4
+    garden = garden[lh:rh+1]
+    return (potvalue, garden)
 
+def performGenerations(garden, count):
+    """Simulates generations until a cycle is found. Once the cycle is found, does some basic math to advance
+    as many cycles as possible before simulating any remaining generations. Computes the first index of a live
+    pot by keeping track of changes in live pot offset between first and last generation in cycle
+
+    TODO: Turns out I wrote the code more generally than is necessary and the input I've results in a cycle of
+    only 1. Is this generally true? Revisit a confirm"""
+
+    history = {}
+
+    currentFirstLivepot = garden.index('#')
+
+    generation = 0
+    # continue while not cycle is found
+    while garden not in history and generation < count:
+        history[garden] = (generation, currentFirstLivepot)
+        currentFirstLivepot, garden = compact(currentFirstLivepot, nextGeneration(garden, notes))
+        generation += 1
+
+    remainingGenerations = count - generation
+    if remainingGenerations > 0:
+        # process the cycle quickly
+        seeng, legacyFirstLivepot = history[garden]
+        # TODO : Is this always 1?
+        noOfGenerationsInCycle = (generation - seeng)
+
+        countOfCycleRepetitions = remainingGenerations // noOfGenerationsInCycle
+        # how far ahead can we go?
+        if countOfCycleRepetitions > 0:
+            # keep track of first live pot offset
+            firstLivepotDelta = currentFirstLivepot - legacyFirstLivepot
+            currentFirstLivepot += (firstLivepotDelta * countOfCycleRepetitions)
+            remainingGenerations = remainingGenerations % noOfGenerationsInCycle
+
+        for i in range(remainingGenerations):
+            currentFirstLivepot, garden = compact(currentFirstLivepot, nextGeneration(garden, notes))
+
+    return score(garden, currentFirstLivepot)
+
+
+def mapByGeneration(generationByGarden):
+    gardenByGeneration = {}
+    return { generation : (garden, firstlivepot) for garden, (generation, firstlivepot) in generationByGarden.items() }
+
+
+#filename = 'sample.input'
+filename = 'production.input'
+garden, notes = readSpecification(filename)
+
+score = performGenerations(garden, 50000000000)
+print('Score after 50000000000 generations is ' + str(score))
 
