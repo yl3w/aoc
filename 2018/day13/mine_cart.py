@@ -2,7 +2,7 @@
 # --- Day 13: Mine Cart Madness ---
 
 from functools import reduce
-from itertools import groupby
+from itertools import groupby, chain
 
 class Cart:
     trackAndDirection = { '/' : {
@@ -44,10 +44,10 @@ class Cart:
         self.y = y
         self.direction = direction
         self.turnNext = 'L'
+        self.crashed = False
 
-    def updateCart(self, grid):
+    def move(self, grid):
         track = grid.trackAt(self.x, self.y)
-        #print(track + ' '  + self.direction)
         if track == '+':
             dx, dy, direction = Cart.intersectionAndMove[self.turnNext][self.direction]
             self.direction = direction
@@ -62,12 +62,8 @@ class Cart:
 
             dx, dy = Cart.directionAndMove[self.direction]
 
-        #print(str(self.x) + ',' + str(self.y) + ' : ' + str(dx) + ',' + str(dy))
-       
         self.x += dx
         self.y += dy
-
-        #print(grid.trackAt(self.x, self.y))
     
 
     def position(self):
@@ -93,6 +89,15 @@ class Grid:
     def makeCart(x, direction, ys):
         return list(map(lambda y: Cart(x, y, direction), ys))
 
+    @staticmethod
+    def verifyCartMove(c, cartsByStartPosition):
+        oc = cartsByStartPosition.get((c.x, c.y), None)
+        if oc and oc.x == c.x and oc.y == c.y:
+            c.crashed = True
+            oc.crashed = True
+            for c in [c, oc]:
+                print('Captured crash at (' + str(c.x) + ', ' + str(c.y) + ')')
+
     def processCarts(self):
         for x in range(len(self.grid)):
             cartsFacingDirection = map(lambda d: Grid.cartsFacingDirection(d, self.grid[x]), Grid.cartsAndDirections.keys())
@@ -111,22 +116,33 @@ class Grid:
         return track
 
     def move(self):
+        cartsByStartPosition = { (c.x, c.y): c for c in self.carts }
         groupedByRow = groupby(self.carts, key=lambda c: c.x)
         for _, carts in groupedByRow:
             carts = sorted(carts, key=lambda c: c.y)
             for c in carts:
-                c.updateCart(self)
+                c.move(self)
+                Grid.verifyCartMove(c, cartsByStartPosition)
 
-    def collision(self):
-        coordinates = set()
+        self.updateCrashes()
+        self.removeCarts()
+
+    def updateCrashes(self):
+        cartsByPoints = {}
         for c in self.carts:
-            pair = (c.x, c.y)
-            if pair not in coordinates:
-                coordinates.add(pair)
-            else:
-                return pair
+            carts = cartsByPoints.get((c.x, c.y), [])
+            carts.append(c)
+            cartsByPoints[(c.x, c.y)] = carts
 
-        return None
+        for c in chain.from_iterable(map(lambda t: t[1], filter(lambda t: len(t[1]) > 1, cartsByPoints.items()))):
+            print('Captured crash at (' + str(c.x) + ', ' + str(c.y) + ')')
+            c.crashed = True
+
+    def removeCarts(self):
+        self.carts = list(filter(lambda c: not c.crashed, self.carts))
+
+    def cartsLeft(self):
+        return len(self.carts)
 
 
 def readSpecification(filename):
@@ -138,11 +154,20 @@ def readSpecification(filename):
     g.processCarts()
     return g
 
+def printSimulation(filename):
+    g = readSpecification(filename)
+    
+    while g.cartsLeft() > 1:
+        g.move()
+    
+    if g.cartsLeft() == 1:
+        c = g.carts[0]
+        print('Position of last remaining cart is (' + str(c.x) + ', ' + str(c.y) + ')')
+    else:
+        print('Uh Oh! all carts crashed')
+    
 
-#filename = 'sample.input'
-filename = 'production.input'
-g = readSpecification(filename)
-while not g.collision():
-    g.move()
-
-print(g.collision())
+#for filename in ['production.input', 'sample3.input', 'sample2.input', 'sample.input']:
+for filename in ['test.input', 'test1.input', 'test2.input', 'production.input']:
+    print('----------------------   Running ' + filename + '   --------------------------')
+    printSimulation(filename)
