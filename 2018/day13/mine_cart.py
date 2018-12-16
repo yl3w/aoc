@@ -19,20 +19,20 @@ class Cart:
         }
 
     intersectionAndMove = { 'L' : {
-                '^': (0, -1, '<'),
-                '<': (1, 0, 'v'),
-                'v': (0, 1, '>'),
-                '>': (-1, 0, '^')
+                '^': '<',
+                '<': 'v',
+                'v': '>',
+                '>': '^'
             }, 'S': {
-                '^': (-1, 0, '^'),
-                '<': (0, -1, '<'),
-                '>': (0, 1, '>'),
-                'v': (1, 0, 'v')
+                '^': '^',
+                '<': '<',
+                '>': '>',
+                'v': 'v'
             }, 'R': {
-                '^': (0, 1, '>'),
-                '<': (-1, 0, '^'),
-                '>': (1, 0, 'v'),
-                'v': (0, -1, '<')
+                '^': '>',
+                '<': '^',
+                '>': 'v',
+                'v': '<'
             }
         }
 
@@ -49,8 +49,7 @@ class Cart:
     def move(self, grid):
         track = grid.trackAt(self.x, self.y)
         if track == '+':
-            dx, dy, direction = Cart.intersectionAndMove[self.turnNext][self.direction]
-            self.direction = direction
+            self.direction = Cart.intersectionAndMove[self.turnNext][self.direction]
             ti = Cart.intersectionOrder.index(self.turnNext)
             if ti == len(Cart.intersectionOrder) - 1:
                 self.turnNext = Cart.intersectionOrder[0]
@@ -60,8 +59,7 @@ class Cart:
             if track in Cart.trackAndDirection:
                 self.direction = Cart.trackAndDirection[track][self.direction]
 
-            dx, dy = Cart.directionAndMove[self.direction]
-
+        dx, dy = Cart.directionAndMove[self.direction]
         self.x += dx
         self.y += dy
     
@@ -167,7 +165,6 @@ def printSimulation(filename):
         print('Uh Oh! all carts crashed')
     
 
-#for filename in ['production.input', 'sample3.input', 'sample2.input', 'sample.input']:
-for filename in ['test.input', 'test1.input', 'test2.input', 'production.input']:
+for filename in ['test.input', 'test1.input', 'test2.input', 'sample.input', 'sample2.input', 'production.input']:
     print('----------------------   Running ' + filename + '   --------------------------')
     printSimulation(filename)
